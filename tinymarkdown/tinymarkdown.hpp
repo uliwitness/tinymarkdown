@@ -42,13 +42,13 @@ namespace tinymarkdown
 			std::string	htmlResult;
 			std::string	currentLine;
 			std::string	previousLine;
-			size_t		markdownLength = inMarkdown.length();
+			off_t		markdownLength = inMarkdown.length();
 			char		previousChar = '\0';
 			int			underlineHeaderLevel = 0;
 			off_t		italicStartOffset = -1;
 			off_t		imageStartOffset = -1;
 
-			for( size_t x = 0; x < markdownLength; )
+			for( off_t x = 0; x < markdownLength; )
 			{
 				char currCh = inMarkdown[x];
 				
@@ -181,7 +181,7 @@ namespace tinymarkdown
 					if( currentLine[imageStartOffset +1] == '[' )	// Valid alt-text! Image!
 					{
 						std::string imageInfo = currentLine.substr( imageStartOffset +2, imageInfoLength -2 );	// We know it started with "![", no need to extract that.
-						off_t	separatorOffset = imageInfo.find("](");
+						size_t	separatorOffset = imageInfo.find("](");
 						if( separatorOffset == std::string::npos )	// Not an image link.
 							currentLine.append( ")" );
 						else
