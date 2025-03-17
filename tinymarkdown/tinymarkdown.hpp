@@ -46,6 +46,7 @@ namespace tinymarkdown
 			char		previousChar = '\0';
 			int			underlineHeaderLevel = 0;
 			off_t		italicStartOffset = -1;
+			off_t		boldStartOffset = -1;
 			off_t		imageStartOffset = -1;
 
 			for( off_t x = 0; x < markdownLength; )
@@ -82,6 +83,7 @@ namespace tinymarkdown
 					++x;
 					underlineHeaderLevel = 0;
 					italicStartOffset = -1;
+					boldStartOffset = -1;
 					continue;
 				}
 				
@@ -121,6 +123,7 @@ namespace tinymarkdown
 						underlineHeaderLevel = 0;
 					}
 					italicStartOffset = -1;
+					boldStartOffset = -1;
 					++x;
 					continue;
 				}
@@ -141,6 +144,23 @@ namespace tinymarkdown
 				}
 				else if( currCh == '*' )
 				{
+					if( boldStartOffset > -1 )	// End of bold sequence.
+					{
+						currentLine.replace(boldStartOffset, 1, "<b>");
+						currentLine.append("</b>");
+						boldStartOffset = -1;
+					}
+					else
+					{
+						boldStartOffset = currentLine.length();
+						currentLine.append("*");
+					}
+					underlineHeaderLevel = -1;
+
+					++x;
+				}
+				else if( currCh == '_' )
+				{
 					if( italicStartOffset > -1 )	// End of italic sequence.
 					{
 						currentLine.replace(italicStartOffset, 1, "<i>");
@@ -150,7 +170,7 @@ namespace tinymarkdown
 					else
 					{
 						italicStartOffset = currentLine.length();
-						currentLine.append("*");
+						currentLine.append("_");
 					}
 					underlineHeaderLevel = -1;
 
@@ -217,6 +237,14 @@ namespace tinymarkdown
 				   && (currCh == ' ' || currCh == '\t' || currCh == '\r' || currCh == '\n') )
 				{
 					italicStartOffset = -1;
+				}
+				
+				/* Previous iteration saw an underscore and thought it might start italics
+					but there is whitespace after it? It's just an underscore. */
+				if( boldStartOffset > -1 && boldStartOffset == (x -1)
+				   && (currCh == ' ' || currCh == '\t' || currCh == '\r' || currCh == '\n') )
+				{
+					boldStartOffset = -1;
 				}
 				
 				previousChar = currCh;
