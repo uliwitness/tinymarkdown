@@ -48,6 +48,7 @@ namespace tinymarkdown
 			off_t		italicStartOffset = -1;
 			off_t		boldStartOffset = -1;
 			off_t		imageStartOffset = -1;
+			off_t		linkStartOffset = -1;
 
 			for( off_t x = 0; x < markdownLength; )
 			{
@@ -188,10 +189,17 @@ namespace tinymarkdown
 					underlineHeaderLevel = -1;
 					++x;
 				}
-				else if( currCh == '!' )
+				else if( currCh == '!' && linkStartOffset == -1 )
 				{
 					imageStartOffset = currentLine.length();
 					currentLine.append( "!" );
+					underlineHeaderLevel = -1;
+					++x;
+				}
+				else if( currCh == '[' && imageStartOffset == -1 ) // Bug: imageStartOffset is set if anyone has ever used an '!'.
+				{
+					linkStartOffset = currentLine.length();
+					currentLine.append( "[" );
 					underlineHeaderLevel = -1;
 					++x;
 				}
@@ -220,6 +228,30 @@ namespace tinymarkdown
 					else	// Not an image, leave untouched, and append the ")" we just saw.
 					{
 						currentLine.append( ")" );
+					}
+					underlineHeaderLevel = -1;
+					++x;
+				}
+				else if( currCh == ')' && linkStartOffset > -1 )
+				{
+					size_t linkInfoLength = currentLine.length() -linkStartOffset;
+					std::string linkInfo = currentLine.substr( linkStartOffset +1, linkInfoLength -2 );	// We know it started with "[", no need to extract that.
+					size_t	separatorOffset = linkInfo.find("](");
+					if( separatorOffset == std::string::npos ) {	// Not a link.
+						currentLine.append( ")" );
+						continue;
+					} else {
+						std::string linkTag( "<a href=\"" );
+						linkTag.append( linkInfo.substr( separatorOffset +2, linkInfo.length() -separatorOffset -2 ) );
+						if( separatorOffset < 0 )
+						{
+							currentLine.append( ")" );
+							continue;
+						}
+						linkTag.append( "\">" );
+						linkTag.append( linkInfo.substr( 0, separatorOffset ) );
+						linkTag.append( "</a>" );
+						currentLine.replace( linkStartOffset, linkInfoLength, linkTag );
 					}
 					underlineHeaderLevel = -1;
 					++x;
