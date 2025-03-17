@@ -15,9 +15,10 @@ What does it do?
 Currently it only implements part of Markdown (the parts I needed right now). Those are:
 
 1. Underlined H1/H2 headers (using == and --)
-2. Italics using *asterisks*
-3. Image links using the ![alt text](url/or/path) syntax
-4. Escaping of < and > characters.
+2. Boldface using *asterisks*
+3. Italics using _underscores_
+4. Image links using the ![alt text](url/or/path) syntax
+5. Escaping of < and > characters.
 
 More will be added as needed. Contributions are greatly welcome.
 
